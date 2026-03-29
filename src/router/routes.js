@@ -1,12 +1,19 @@
 const routes = [
   {
     path: '/',
+    redirect: '/login',
+  },
+  {
+    path: '/login',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
+    children: [{ path: '', component: () => import('pages/LoginPage.vue') }],
+  },
+  {
+    path: '/todos',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [{ path: '', component: () => import('pages/TodosPage.vue') }],
   },
 
-  // Always leave this as last one,
-  // but you can also remove it
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
