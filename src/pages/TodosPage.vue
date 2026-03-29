@@ -74,6 +74,21 @@ const toggleTodoStatus = async (todo) => {
   }
 }
 
+const deleteTodo = async (todoId) => {
+  actionLoadingId.value = todoId
+  errorMessage.value = ''
+
+  try {
+    await api.delete(`/todos/${todoId}`)
+    await loadTodos()
+  } catch (error) {
+    console.error('ERREUR SUPPRESSION TODO', error)
+    errorMessage.value = 'Impossible de supprimer la tâche.'
+  } finally {
+    actionLoadingId.value = null
+  }
+}
+
 const formatDate = (dateString) => {
   if (!dateString) return ''
   return new Date(dateString).toLocaleDateString('fr-FR')
@@ -152,7 +167,7 @@ onMounted(() => {
 
             <div class="todo-date q-mt-sm">Créée le : {{ formatDate(todo.created_at) }}</div>
 
-            <div class="q-mt-md">
+            <div class="q-mt-md action-buttons">
               <q-btn
                 unelevated
                 no-caps
@@ -161,6 +176,15 @@ onMounted(() => {
                 :disable="actionLoadingId === todo.id"
                 @click="toggleTodoStatus(todo)"
                 :label="todo.is_completed ? 'Remettre en cours' : 'Marquer comme terminée'"
+              />
+
+              <q-btn
+                flat
+                no-caps
+                class="todo-delete-btn"
+                :disable="actionLoadingId === todo.id"
+                @click="deleteTodo(todo.id)"
+                label="Supprimer"
               />
             </div>
           </q-card-section>
@@ -272,10 +296,20 @@ onMounted(() => {
   color: #948cab;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .todo-action-btn {
   background: #6a4ae3;
   color: white;
   border-radius: 12px;
+}
+
+.todo-delete-btn {
+  color: #c62828;
 }
 
 .loading-box {
