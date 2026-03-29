@@ -7,6 +7,10 @@ const loading = ref(true)
 const errorMessage = ref('')
 const actionLoadingId = ref(null)
 
+const newTitle = ref('')
+const newDescription = ref('')
+const createLoading = ref(false)
+
 const loadTodos = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -19,6 +23,34 @@ const loadTodos = async () => {
     errorMessage.value = 'Impossible de charger les tâches.'
   } finally {
     loading.value = false
+  }
+}
+
+const createTodo = async () => {
+  errorMessage.value = ''
+
+  if (!newTitle.value.trim()) {
+    errorMessage.value = 'Le titre est obligatoire.'
+    return
+  }
+
+  createLoading.value = true
+
+  try {
+    await api.post('/todos', {
+      title: newTitle.value,
+      description: newDescription.value,
+    })
+
+    newTitle.value = ''
+    newDescription.value = ''
+
+    await loadTodos()
+  } catch (error) {
+    console.error('ERREUR CREATION TODO', error)
+    errorMessage.value = 'Impossible de créer la tâche.'
+  } finally {
+    createLoading.value = false
   }
 }
 
@@ -59,6 +91,33 @@ onMounted(() => {
         <div class="page-title">Mes tâches</div>
         <div class="page-subtitle">Organise tes actions pour une plus grande autonomie</div>
       </div>
+
+      <q-card class="todo-form-card q-mb-lg" flat>
+        <q-card-section class="q-pa-lg">
+          <div class="form-title q-mb-md">Ajouter une tâche</div>
+
+          <q-input v-model="newTitle" label="Titre" outlined class="q-mb-md" />
+
+          <q-input
+            v-model="newDescription"
+            label="Description"
+            type="textarea"
+            outlined
+            autogrow
+            class="q-mb-md"
+          />
+
+          <q-btn
+            unelevated
+            no-caps
+            class="todo-action-btn"
+            label="Ajouter la tâche"
+            :loading="createLoading"
+            :disable="createLoading"
+            @click="createTodo"
+          />
+        </q-card-section>
+      </q-card>
 
       <div v-if="loading" class="loading-box">
         <q-spinner size="40px" color="primary" />
@@ -135,6 +194,19 @@ onMounted(() => {
 .page-subtitle {
   margin-top: 8px;
   color: #7a7194;
+}
+
+.todo-form-card {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e9e2ff;
+  box-shadow: 0 12px 28px rgba(91, 60, 196, 0.12);
+}
+
+.form-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2e2547;
 }
 
 .todo-list {
