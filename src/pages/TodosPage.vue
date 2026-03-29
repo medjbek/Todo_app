@@ -5,6 +5,7 @@ import { api } from 'boot/axios'
 const todos = ref([])
 const loading = ref(true)
 const errorMessage = ref('')
+const actionLoadingId = ref(null)
 
 const loadTodos = async () => {
   loading.value = true
@@ -18,6 +19,26 @@ const loadTodos = async () => {
     errorMessage.value = 'Impossible de charger les tâches.'
   } finally {
     loading.value = false
+  }
+}
+
+const toggleTodoStatus = async (todo) => {
+  actionLoadingId.value = todo.id
+  errorMessage.value = ''
+
+  try {
+    await api.put(`/todos/${todo.id}`, {
+      title: todo.title,
+      description: todo.description,
+      is_completed: !todo.is_completed,
+    })
+
+    await loadTodos()
+  } catch (error) {
+    console.error('ERREUR MISE A JOUR TODO', error)
+    errorMessage.value = 'Impossible de mettre à jour la tâche.'
+  } finally {
+    actionLoadingId.value = null
   }
 }
 
@@ -71,6 +92,18 @@ onMounted(() => {
             </div>
 
             <div class="todo-date q-mt-sm">Créée le : {{ formatDate(todo.created_at) }}</div>
+
+            <div class="q-mt-md">
+              <q-btn
+                unelevated
+                no-caps
+                class="todo-action-btn"
+                :loading="actionLoadingId === todo.id"
+                :disable="actionLoadingId === todo.id"
+                @click="toggleTodoStatus(todo)"
+                :label="todo.is_completed ? 'Remettre en cours' : 'Marquer comme terminée'"
+              />
+            </div>
           </q-card-section>
         </q-card>
       </div>
@@ -165,6 +198,12 @@ onMounted(() => {
 .todo-date {
   font-size: 13px;
   color: #948cab;
+}
+
+.todo-action-btn {
+  background: #6a4ae3;
+  color: white;
+  border-radius: 12px;
 }
 
 .loading-box {
